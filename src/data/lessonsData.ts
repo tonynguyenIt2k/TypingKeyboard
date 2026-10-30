@@ -238,3 +238,33 @@ export const TIMED_PASSAGES = {
     'Luyen go muoi ngon tay khong he kho neu ban tuan thu dung nguyen tac vi tri ngon ngay tu ngay dau tien. Hay dat nhe tam ngon tay len hang phim co so ASDF va JKL;, hai ngon cai dat tren phim Cach. Moi khi mot ngon tay vuon len hang tren hoac xuong hang duoi de bam phim, hay dua ngon tay do tro ve dung vi tri neo ban dau.',
   ],
 };
+
+export interface ZenPassage {
+  id: string;
+  label: string;
+  text: string;
+}
+
+export const ZEN_LYRIC_PASSAGES: ZenPassage[] = [
+  {
+    id: 'zen-1',
+    label: 'Giai điệu Acoustic 01',
+    text: 'bỏ qua những ngày mưa rơi nhẹ bên hiên vắng xin đừng để nhịp tay rời khỏi phím đàn êm từng câu chữ trôi qua bình yên giữa màn đêm tĩnh lặng',
+  },
+  {
+    id: 'zen-2',
+    label: 'Giai điệu Indie 02',
+    text: 'gió đưa hương mùa thu ngang qua khung cửa nhỏ những thanh âm dịu dàng ngân vang theo từng nhịp gõ để tâm trí thảnh thơi bay theo áng mây chiều',
+  },
+  {
+    id: 'zen-3',
+    label: 'Nhịp Chill Không Dấu',
+    text: 'nhung ngon tay luot em tren tung phim nho giua khong gian tinh lang cua buoi dem khuya giu nhip tho deu dan de dong chu tuon trao tu nhien',
+  },
+  {
+    id: 'zen-4',
+    label: 'Midnight Lo-Fi (EN)',
+    text: 'soft rain falls against the quiet window pane while steady fingers dance across the dark keys letting every thought drift into calm rhythm',
+  },
+];
+

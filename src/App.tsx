@@ -4,11 +4,12 @@
  */
 
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { LESSONS, TIMED_PASSAGES } from './data/lessonsData';
+import { LESSONS, TIMED_PASSAGES, ZEN_LYRIC_PASSAGES } from './data/lessonsData';
 import { getGuidanceForChar } from './data/keyboardData';
 import { KeyFeedbackEvent, Lesson, PracticeMode, SessionRecord } from './types';
 import { TypingCanvas } from './components/TypingCanvas';
 import { VirtualKeyboard } from './components/VirtualKeyboard';
+import { ZenKaraokeStage } from './components/ZenKaraokeStage';
 import { SessionSummary } from './components/SessionSummary';
 import { CurriculumSection } from './components/CurriculumSection';
 import { FingerGuideSection } from './components/FingerGuideSection';
@@ -27,10 +28,12 @@ export default function App() {
   const [activeLessonId, setActiveLessonId] = useState<string>(LESSONS[0].id);
   const [exerciseIdx, setExerciseIdx] = useState<number>(0);
 
-  // Timed test settings
+  // Timed test & Zen Lyric settings
   const [timedDuration, setTimedDuration] = useState<30 | 60 | 120>(60);
   const [timedLang, setTimedLang] = useState<'vi' | 'viNoTone' | 'en'>('vi');
   const [timedPassageIdx, setTimedPassageIdx] = useState<number>(0);
+  const [zenPassageIdx, setZenPassageIdx] = useState<number>(0);
+  const [zenFullScreen, setZenFullScreen] = useState<boolean>(false);
 
   // Custom text state
   const [customDraft, setCustomDraft] = useState<string>(DEFAULT_CUSTOM_TEXT);
@@ -80,6 +83,11 @@ export default function App() {
     [activeLessonId]
   );
 
+  const activeZenPassage = useMemo(
+    () => ZEN_LYRIC_PASSAGES[zenPassageIdx % ZEN_LYRIC_PASSAGES.length],
+    [zenPassageIdx]
+  );
+
   // Compute current target text
   const targetText = useMemo(() => {
     if (mode === PracticeMode.Lesson) {
@@ -89,8 +97,11 @@ export default function App() {
       const list = TIMED_PASSAGES[timedLang];
       return list[timedPassageIdx % list.length];
     }
+    if (mode === PracticeMode.ZenFocus) {
+      return activeZenPassage.text;
+    }
     return appliedCustomText.trim() || DEFAULT_CUSTOM_TEXT;
-  }, [mode, activeLesson, exerciseIdx, timedLang, timedPassageIdx, appliedCustomText]);
+  }, [mode, activeLesson, exerciseIdx, timedLang, timedPassageIdx, activeZenPassage, appliedCustomText]);
 
   const sessionTitle = useMemo(() => {
     if (mode === PracticeMode.Lesson) {
@@ -105,8 +116,11 @@ export default function App() {
             : 'Tiếng Anh';
       return `Kiểm tra tốc độ ${timedDuration} giây — ${langLabel}`;
     }
+    if (mode === PracticeMode.ZenFocus) {
+      return `Zen Lyric — ${activeZenPassage.label}`;
+    }
     return 'Văn bản tự chọn cá nhân';
-  }, [mode, activeLesson, exerciseIdx, timedDuration, timedLang]);
+  }, [mode, activeLesson, exerciseIdx, timedDuration, timedLang, activeZenPassage]);
 
   const saveSessionRecord = useCallback((record: SessionRecord) => {
     setLastRecord(record);
@@ -433,12 +447,17 @@ export default function App() {
       }
     } else if (mode === PracticeMode.TimedTest) {
       setTimedPassageIdx((i) => i + 1);
+    } else if (mode === PracticeMode.ZenFocus) {
+      setZenPassageIdx((i) => i + 1);
     }
     resetSession(true);
   };
 
   const handleSwitchMode = (nextMode: PracticeMode) => {
     setMode(nextMode);
+    if (nextMode !== PracticeMode.ZenFocus) {
+      setZenFullScreen(false);
+    }
     setIsEditingCustom(nextMode === PracticeMode.CustomText && !appliedCustomText);
     resetSession(nextMode !== PracticeMode.CustomText);
   };
@@ -514,6 +533,10 @@ export default function App() {
           handleSwitchMode(PracticeMode.TimedTest);
           scrollToWorkspace();
         }}
+        onStartZenMode={() => {
+          handleSwitchMode(PracticeMode.ZenFocus);
+          scrollToWorkspace();
+        }}
         onOpenCustomText={() => {
           setMode(PracticeMode.CustomText);
           setIsEditingCustom(true);
@@ -585,6 +608,17 @@ export default function App() {
                     }`}
                   >
                     Kiểm tra tốc độ
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleSwitchMode(PracticeMode.ZenFocus)}
+                    className={`px-3.5 py-1.5 text-xs font-semibold rounded-md transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
+                      mode === PracticeMode.ZenFocus
+                        ? 'bg-slate-900 text-white shadow-xs'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    Zen Lyric
                   </button>
                   <button
                     type="button"
@@ -747,7 +781,7 @@ export default function App() {
               </form>
             )}
 
-            {/* Focal Anchor: Typing Stage OR Session Summary */}
+            {/* Focal Anchor: Typing Stage OR Zen Karaoke Stage OR Session Summary */}
             {isFinished && lastRecord ? (
               <SessionSummary
                 record={lastRecord}
@@ -756,6 +790,54 @@ export default function App() {
                 hasNextExercise={mode !== PracticeMode.CustomText}
                 onRetry={() => resetSession(true)}
                 onNext={handleNextExercise}
+              />
+            ) : mode === PracticeMode.ZenFocus ? (
+              <ZenKaraokeStage
+                targetText={targetText}
+                typedText={typedText}
+                isFocused={isFocused}
+                isFinished={isFinished}
+                wpm={liveStats.wpm}
+                accuracy={liveStats.accuracy}
+                elapsedSec={elapsedSec}
+                guidance={guidance}
+                pressedCodes={pressedCodes}
+                keyFeedback={keyFeedback}
+                soundEnabled={soundEnabled}
+                errorSoundEnabled={errorSoundEnabled}
+                isFullScreen={zenFullScreen}
+                activePassageId={activeZenPassage.id}
+                onSelectPassage={(passage) => {
+                  const foundIdx = ZEN_LYRIC_PASSAGES.findIndex((p) => p.id === passage.id);
+                  if (foundIdx >= 0) setZenPassageIdx(foundIdx);
+                  resetSession(true);
+                }}
+                onNextPassage={() => {
+                  setZenPassageIdx((i) => i + 1);
+                  resetSession(true);
+                }}
+                onInputChange={handleInputChange}
+                onFocusChange={setIsFocused}
+                onReset={() => resetSession(true)}
+                onToggleSound={() => {
+                  setSoundEnabled((prev) => {
+                    const next = !prev;
+                    if (next) soundEngine.playKeyClick(false);
+                    return next;
+                  });
+                }}
+                onToggleErrorSound={() => {
+                  setErrorSoundEnabled((prev) => {
+                    const next = !prev;
+                    if (next) soundEngine.playErrorSound();
+                    return next;
+                  });
+                }}
+                onToggleFullScreen={() => {
+                  setZenFullScreen((f) => !f);
+                  requestAnimationFrame(() => inputRef.current?.focus());
+                }}
+                inputRef={inputRef}
               />
             ) : (
               <div className="space-y-6">

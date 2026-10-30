@@ -13,6 +13,7 @@ export enum FingerId {
 export enum PracticeMode {
   Lesson = 'lesson',
   TimedTest = 'timed_test',
+  ZenFocus = 'zen_focus',
   CustomText = 'custom_text',
 }
 

@@ -14,6 +14,7 @@ import {
   Eye,
   RotateCcw,
   FastForward,
+  Sparkles,
   X,
 } from 'lucide-react';
 import { Lesson, PracticeMode } from '../types';
@@ -33,6 +34,7 @@ interface SidebarRailProps {
   totalSessions: number;
   onNavigateSection: (section: ActiveNavSection) => void;
   onStartTimedTest: () => void;
+  onStartZenMode: () => void;
   onOpenCustomText: () => void;
   onSelectLesson: (lesson: Lesson) => void;
   onResetSession: () => void;
@@ -55,6 +57,7 @@ export const SidebarRail: React.FC<SidebarRailProps> = ({
   totalSessions,
   onNavigateSection,
   onStartTimedTest,
+  onStartZenMode,
   onOpenCustomText,
   onSelectLesson,
   onResetSession,
@@ -141,7 +144,16 @@ export const SidebarRail: React.FC<SidebarRailProps> = ({
             <Timer className="w-6 h-6 stroke-[1.8] transition-transform group-hover:scale-105" />
           </RailButton>
 
-          {/* 4. Văn bản tự chọn -> FilePlus2 */}
+          {/* 4. Chế độ Zen Lyric (Giao diện tối Karaoke) -> Sparkles */}
+          <RailButton
+            label="Chế độ Zen Lyric (Gõ chill nền tối)"
+            isActive={mode === PracticeMode.ZenFocus && activeSection === 'san-tap'}
+            onClick={onStartZenMode}
+          >
+            <Sparkles className="w-6 h-6 stroke-[1.8] transition-transform group-hover:scale-105" />
+          </RailButton>
+
+          {/* 5. Văn bản tự chọn -> FilePlus2 */}
           <RailButton
             label="Văn bản tự chọn cá nhân"
             isActive={mode === PracticeMode.CustomText && activeSection === 'san-tap'}
