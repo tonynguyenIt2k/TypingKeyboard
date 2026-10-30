@@ -1,0 +1,6 @@
+{
+  "name": "Mười Ngón — Luyện Gõ 10 Ngón Chuyên Sâu",
+  "description": "Nền tảng luyện gõ bàn phím bằng 10 ngón tay từ cơ bản đến nâng cao với hướng dẫn vị trí ngón trực quan, bài học theo từng hàng phím, kiểm tra tốc độ WPM và thống kê tiến độ.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

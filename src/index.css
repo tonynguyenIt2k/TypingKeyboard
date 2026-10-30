@@ -1,0 +1,83 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
+@layer base {
+  html {
+    font-family: var(--font-sans);
+    scroll-behavior: smooth;
+  }
+}
+
+@keyframes char-pop {
+  0% {
+    transform: scale(0.92);
+  }
+  55% {
+    transform: scale(1.14);
+  }
+  100% {
+    transform: scale(1.06);
+  }
+}
+
+@keyframes char-settle {
+  0% {
+    transform: scale(1.14);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.animate-char-active {
+  animation: char-pop 160ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-char-typed {
+  animation: char-settle 150ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes key-hit-correct {
+  0% {
+    transform: translateY(2px) scale(0.94);
+  }
+  50% {
+    transform: translateY(-1px) scale(1.03);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes key-hit-error {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-2.5px);
+  }
+  75% {
+    transform: translateX(2.5px);
+  }
+}
+
+.animate-key-correct {
+  animation: key-hit-correct 180ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.animate-key-error {
+  animation: key-hit-error 180ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
