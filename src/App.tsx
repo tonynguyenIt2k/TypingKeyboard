@@ -38,6 +38,7 @@ export default function App() {
   const [isEditingCustom, setIsEditingCustom] = useState<boolean>(false);
 
   // Visual & Sound Preferences
+  const [ghostMode, setGhostMode] = useState<boolean>(false);
   const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
   const [errorSoundEnabled, setErrorSoundEnabled] = useState<boolean>(true);
   const [showFingerZones, setShowFingerZones] = useState<boolean>(true);
@@ -260,13 +261,21 @@ export default function App() {
     inputRef.current?.focus();
   }, []);
 
-  // Handle text input (supports full Vietnamese Telex / VNI IME composition cleanly)
+  // Handle text input (supports full Vietnamese Telex / VNI IME composition cleanly + Ghost Typing overwrite)
   const handleInputChange = (rawVal: string) => {
     if (isFinished) return;
 
-    // Normalize NFC so Vietnamese composed characters always match targetText
-    const nextVal = rawVal.normalize('NFC').slice(0, targetText.length);
     const prevVal = prevTypedRef.current;
+    // Normalize NFC so Vietnamese composed characters always match targetText
+    let nextVal = rawVal.normalize('NFC').slice(0, targetText.length);
+
+    // In Ghost Typing mode, disallow shrinking already-typed text via Backspace/cut
+    // (Vietnamese IME replacements keep length >= prevVal.length or replace the last character at equal length)
+    if (ghostMode && nextVal.length < prevVal.length) {
+      nextVal = prevVal;
+      setTypedText(prevVal);
+      return;
+    }
 
     let currentStart = startTimeMs;
     if (!currentStart && nextVal.length > 0) {
@@ -493,6 +502,7 @@ export default function App() {
       <SidebarRail
         activeSection={activeSection}
         mode={mode}
+        ghostMode={ghostMode}
         soundEnabled={soundEnabled}
         errorSoundEnabled={errorSoundEnabled}
         showFingerZones={showFingerZones}
@@ -512,6 +522,10 @@ export default function App() {
         }}
         onSelectLesson={handleSelectLesson}
         onResetSession={() => resetSession(true)}
+        onToggleGhostMode={() => {
+          setGhostMode((g) => !g);
+          requestAnimationFrame(() => inputRef.current?.focus());
+        }}
         onToggleSound={() => {
           setSoundEnabled((prev) => {
             const next = !prev;
@@ -750,6 +764,7 @@ export default function App() {
                   typedText={typedText}
                   isFocused={isFocused}
                   isFinished={isFinished}
+                  ghostMode={ghostMode}
                   wpm={liveStats.wpm}
                   accuracy={liveStats.accuracy}
                   elapsedSec={elapsedSec}
@@ -762,6 +777,10 @@ export default function App() {
                   onInputChange={handleInputChange}
                   onFocusChange={setIsFocused}
                   onReset={() => resetSession(true)}
+                  onToggleGhostMode={() => {
+                    setGhostMode((g) => !g);
+                    requestAnimationFrame(() => inputRef.current?.focus());
+                  }}
                   onToggleSound={() => {
                     setSoundEnabled((prev) => {
                       const next = !prev;

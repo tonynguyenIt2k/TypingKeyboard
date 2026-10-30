@@ -1,19 +1,19 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
   Keyboard,
-  Home,
-  PlaySquare,
-  Send,
+  BookOpen,
+  Timer,
+  FilePlus2,
+  Hand,
+  BarChart3,
   Search,
-  Heart,
-  Plus,
-  Menu,
-  Boxes,
+  SlidersHorizontal,
+  Trophy,
   Volume2,
   VolumeX,
   Eye,
-  Hand,
   RotateCcw,
+  FastForward,
   X,
 } from 'lucide-react';
 import { Lesson, PracticeMode } from '../types';
@@ -24,6 +24,7 @@ export type ActiveNavSection = 'san-tap' | 'lo-trinh' | 'nguyen-tac' | 'thong-ke
 interface SidebarRailProps {
   activeSection: ActiveNavSection;
   mode: PracticeMode;
+  ghostMode: boolean;
   soundEnabled: boolean;
   errorSoundEnabled: boolean;
   showFingerZones: boolean;
@@ -35,6 +36,7 @@ interface SidebarRailProps {
   onOpenCustomText: () => void;
   onSelectLesson: (lesson: Lesson) => void;
   onResetSession: () => void;
+  onToggleGhostMode: () => void;
   onToggleSound: () => void;
   onToggleErrorSound: () => void;
   onToggleZones: () => void;
@@ -44,6 +46,7 @@ interface SidebarRailProps {
 export const SidebarRail: React.FC<SidebarRailProps> = ({
   activeSection,
   mode,
+  ghostMode,
   soundEnabled,
   errorSoundEnabled,
   showFingerZones,
@@ -55,6 +58,7 @@ export const SidebarRail: React.FC<SidebarRailProps> = ({
   onOpenCustomText,
   onSelectLesson,
   onResetSession,
+  onToggleGhostMode,
   onToggleSound,
   onToggleErrorSound,
   onToggleZones,
@@ -92,135 +96,152 @@ export const SidebarRail: React.FC<SidebarRailProps> = ({
 
   return (
     <>
-      {/* Desktop Fixed Vertical Dark Sidebar Rail (matching reference image) */}
+      {/* Desktop Fixed Vertical Dark Sidebar Rail with Domain-Intuitive Icons */}
       <aside
         aria-label="Thanh điều hướng chính"
         className="hidden md:flex fixed inset-y-0 left-0 z-40 w-[72px] bg-[#0B0D10] text-white flex-col items-center justify-between py-6 border-r border-white/10 select-none"
       >
-        {/* Top Brand Icon */}
+        {/* Top Brand Mark: Mười Ngón Monogram */}
         <button
           type="button"
           onClick={() => onNavigateSection('san-tap')}
           title="Mười Ngón — Về Sân tập"
-          className="group relative w-11 h-11 rounded-xl flex items-center justify-center text-white hover:bg-white/10 transition-colors cursor-pointer"
+          className="group relative w-11 h-11 rounded-xl bg-white/10 border border-white/15 flex items-center justify-center text-white hover:bg-sky-600 hover:border-sky-500 transition-colors cursor-pointer"
         >
-          <Keyboard className="w-7 h-7 stroke-[1.8]" />
-          <RailTooltip label="Mười Ngón" />
+          <span className="font-mono text-sm font-bold tracking-tight">10N</span>
+          <RailTooltip label="Mười Ngón — Trang chính" />
         </button>
 
-        {/* Center Main Navigation Stack */}
-        <nav className="flex flex-col items-center gap-3">
-          {/* 1. Home / Sân tập */}
+        {/* Center Main Navigation Stack — Semantically matched to Touch Typing */}
+        <nav className="flex flex-col items-center gap-2.5">
+          {/* 1. Sân tập gõ phím -> Keyboard */}
           <RailButton
             label="Sân tập gõ phím"
             isActive={activeSection === 'san-tap' && mode === PracticeMode.Lesson}
             onClick={() => onNavigateSection('san-tap')}
           >
-            <Home
-              className={`w-6 h-6 transition-transform group-hover:scale-105 ${
-                activeSection === 'san-tap' && mode === PracticeMode.Lesson
-                  ? 'fill-white text-white stroke-[2]'
-                  : 'stroke-[1.8]'
-              }`}
-            />
+            <Keyboard className="w-6 h-6 stroke-[1.8] transition-transform group-hover:scale-105" />
           </RailButton>
 
-          {/* 2. Lộ trình 14 bài học (PlaySquare icon like Reels) */}
+          {/* 2. Lộ trình 14 bài học -> BookOpen */}
           <RailButton
             label="Lộ trình 14 bài học"
             isActive={activeSection === 'lo-trinh'}
             onClick={() => onNavigateSection('lo-trinh')}
           >
-            <PlaySquare className="w-6 h-6 stroke-[1.8] transition-transform group-hover:scale-105" />
+            <BookOpen className="w-6 h-6 stroke-[1.8] transition-transform group-hover:scale-105" />
           </RailButton>
 
-          {/* 3. Kiểm tra tốc độ 60s (Paper-plane / Quick Launch icon) */}
+          {/* 3. Kiểm tra tốc độ đếm ngược -> Timer */}
           <RailButton
-            label="Kiểm tra tốc độ 60 giây"
+            label="Kiểm tra tốc độ (30s / 60s / 120s)"
             isActive={mode === PracticeMode.TimedTest && activeSection === 'san-tap'}
             onClick={onStartTimedTest}
           >
-            <Send className="w-6 h-6 stroke-[1.8] transition-transform group-hover:scale-105" />
+            <Timer className="w-6 h-6 stroke-[1.8] transition-transform group-hover:scale-105" />
           </RailButton>
 
-          {/* 4. Tìm kiếm nhanh bài học (Search) */}
+          {/* 4. Văn bản tự chọn -> FilePlus2 */}
           <RailButton
-            label="Tìm nhanh bài học"
-            isActive={openSearchModal}
-            onClick={() => setOpenSearchModal(true)}
+            label="Văn bản tự chọn cá nhân"
+            isActive={mode === PracticeMode.CustomText && activeSection === 'san-tap'}
+            onClick={onOpenCustomText}
           >
-            <Search className="w-6 h-6 stroke-[1.8] transition-transform group-hover:scale-105" />
+            <FilePlus2 className="w-6 h-6 stroke-[1.8] transition-transform group-hover:scale-105" />
           </RailButton>
 
-          {/* 5. Thống kê WPM & Kỷ lục (Heart with notification dot when sessions recorded) */}
+          {/* 5. Quy tắc & Sơ đồ đặt 10 ngón tay -> Hand */}
+          <RailButton
+            label="Quy tắc & Sơ đồ 10 ngón tay"
+            isActive={activeSection === 'nguyen-tac'}
+            onClick={() => onNavigateSection('nguyen-tac')}
+          >
+            <Hand className="w-6 h-6 stroke-[1.8] transition-transform group-hover:scale-105" />
+          </RailButton>
+
+          {/* 6. Thống kê tiến độ & Phím yếu -> BarChart3 */}
           <RailButton
             label={
               totalSessions > 0
-                ? `Thống kê & Kỷ lục (${bestWpm} WPM)`
-                : 'Thống kê tiến độ'
+                ? `Thống kê tiến độ (${totalSessions} phiên)`
+                : 'Thống kê tiến độ WPM'
             }
             isActive={activeSection === 'thong-ke'}
             onClick={() => onNavigateSection('thong-ke')}
           >
             <div className="relative">
-              <Heart className="w-6 h-6 stroke-[1.8] transition-transform group-hover:scale-105" />
+              <BarChart3 className="w-6 h-6 stroke-[1.8] transition-transform group-hover:scale-105" />
               {totalSessions > 0 && (
                 <span
                   aria-hidden="true"
-                  className="absolute -top-0.5 -right-1 w-2.5 h-2.5 rounded-full bg-rose-500 ring-2 ring-[#0B0D10]"
+                  className="absolute -top-0.5 -right-1 w-2 h-2 rounded-full bg-sky-400 ring-2 ring-[#0B0D10]"
                 />
               )}
             </div>
           </RailButton>
 
-          {/* 6. Tạo văn bản tự chọn (+) */}
+          {/* 7. Tìm kiếm nhanh bài học / phím -> Search */}
           <RailButton
-            label="Soạn văn bản tự chọn"
-            isActive={mode === PracticeMode.CustomText && activeSection === 'san-tap'}
-            onClick={onOpenCustomText}
+            label="Tìm nhanh bài học theo phím"
+            isActive={openSearchModal}
+            onClick={() => setOpenSearchModal(true)}
           >
-            <Plus className="w-6 h-6 stroke-[1.9] transition-transform group-hover:scale-105" />
-          </RailButton>
-
-          {/* 7. Hồ sơ kỷ lục cá nhân (Circular Avatar Badge) */}
-          <RailButton
-            label={`Hồ sơ người tập · Kỷ lục ${bestWpm} WPM`}
-            isActive={false}
-            onClick={() => onNavigateSection('thong-ke')}
-          >
-            <div className="w-7 h-7 rounded-full bg-slate-800 border border-white/25 flex items-center justify-center text-[10px] font-mono font-bold text-sky-300 overflow-hidden">
-              {bestWpm > 0 ? bestWpm : '10N'}
-            </div>
+            <Search className="w-6 h-6 stroke-[1.8] transition-transform group-hover:scale-105" />
           </RailButton>
         </nav>
 
-        {/* Bottom Utility Stack (Menu + Finger Architecture) */}
-        <div ref={menuRef} className="relative flex flex-col items-center gap-3">
-          {/* Hamburger Quick Settings Popover */}
+        {/* Bottom Utility Stack: Best WPM Record + Audio/Visual Settings */}
+        <div ref={menuRef} className="relative flex flex-col items-center gap-2.5">
+          {/* Personal Best WPM Trophy Badge */}
           <RailButton
-            label="Tùy chỉnh sân tập"
+            label={
+              bestWpm > 0
+                ? `Kỷ lục cá nhân: ${bestWpm} WPM`
+                : 'Chưa có kỷ lục — Hãy hoàn thành 1 bài gõ'
+            }
+            isActive={false}
+            onClick={() => onNavigateSection('thong-ke')}
+          >
+            <div className="flex flex-col items-center justify-center leading-none gap-0.5">
+              <Trophy
+                className={`w-4 h-4 ${
+                  bestWpm > 0 ? 'text-amber-400' : 'text-slate-400'
+                }`}
+              />
+              <span className="text-[10px] font-mono font-bold tabular-nums text-slate-200">
+                {bestWpm > 0 ? bestWpm : '--'}
+              </span>
+            </div>
+          </RailButton>
+
+          {/* Settings Popover Trigger -> SlidersHorizontal */}
+          <RailButton
+            label="Cài đặt âm thanh & hiển thị"
             isActive={openSettingsMenu}
             onClick={() => setOpenSettingsMenu((v) => !v)}
           >
-            <Menu className="w-6 h-6 stroke-[1.8]" />
+            <SlidersHorizontal className="w-5 h-5 stroke-[1.8]" />
           </RailButton>
 
-          {/* 3-Blocks / Finger Zones Principle */}
-          <RailButton
-            label="Quy tắc & Sơ đồ 10 ngón"
-            isActive={activeSection === 'nguyen-tac'}
-            onClick={() => onNavigateSection('nguyen-tac')}
-          >
-            <Boxes className="w-6 h-6 stroke-[1.8]" />
-          </RailButton>
-
-          {/* Popover Menu anchored next to Hamburger */}
+          {/* Popover Menu anchored next to Settings button */}
           {openSettingsMenu && (
-            <div className="absolute bottom-12 left-16 w-64 rounded-xl bg-[#15181E] text-white border border-white/15 shadow-xl p-2 space-y-1 z-50">
+            <div className="absolute bottom-2 left-16 w-64 rounded-xl bg-[#15181E] text-white border border-white/15 shadow-xl p-2 space-y-1 z-50">
               <div className="px-3 py-2 border-b border-white/10">
-                <p className="text-xs font-semibold text-white">Cài đặt nhanh sân tập</p>
-                <p className="text-[11px] text-slate-400">Bật/tắt âm thanh & hướng dẫn</p>
+                <p className="text-xs font-semibold text-white">Tùy chỉnh sân tập</p>
+                <p className="text-[11px] text-slate-400">Chế độ gõ, âm thanh & hướng dẫn</p>
               </div>
+
+              <button
+                type="button"
+                onClick={onToggleGhostMode}
+                className="w-full flex items-center justify-between px-3 py-2 text-xs rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
+              >
+                <span className="flex items-center gap-2.5">
+                  <FastForward className={`w-4 h-4 ${ghostMode ? 'text-sky-400' : 'text-slate-400'}`} />
+                  <span>Ghost Typing (Gõ đè)</span>
+                </span>
+                <span className="font-mono text-[11px] text-slate-300">{ghostMode ? 'Bật' : 'Tắt'}</span>
+              </button>
 
               <button
                 type="button"
@@ -296,38 +317,30 @@ export const SidebarRail: React.FC<SidebarRailProps> = ({
         <button
           type="button"
           onClick={() => onNavigateSection('san-tap')}
-          aria-label="Sân tập"
+          aria-label="Sân tập gõ phím"
           className={`p-2.5 rounded-xl ${
             activeSection === 'san-tap' && mode === PracticeMode.Lesson ? 'bg-white/15 text-white' : 'text-slate-300'
           }`}
         >
-          <Home className="w-5 h-5" />
+          <Keyboard className="w-5 h-5" />
         </button>
         <button
           type="button"
           onClick={() => onNavigateSection('lo-trinh')}
-          aria-label="Lộ trình 14 bài"
+          aria-label="Lộ trình 14 bài học"
           className={`p-2.5 rounded-xl ${activeSection === 'lo-trinh' ? 'bg-white/15 text-white' : 'text-slate-300'}`}
         >
-          <PlaySquare className="w-5 h-5" />
+          <BookOpen className="w-5 h-5" />
         </button>
         <button
           type="button"
           onClick={onStartTimedTest}
-          aria-label="Kiểm tra tốc độ 60 giây"
+          aria-label="Kiểm tra tốc độ"
           className={`p-2.5 rounded-xl ${
             mode === PracticeMode.TimedTest ? 'bg-white/15 text-white' : 'text-slate-300'
           }`}
         >
-          <Send className="w-5 h-5" />
-        </button>
-        <button
-          type="button"
-          onClick={() => setOpenSearchModal(true)}
-          aria-label="Tìm bài học"
-          className="p-2.5 rounded-xl text-slate-300"
-        >
-          <Search className="w-5 h-5" />
+          <Timer className="w-5 h-5" />
         </button>
         <button
           type="button"
@@ -337,7 +350,17 @@ export const SidebarRail: React.FC<SidebarRailProps> = ({
             mode === PracticeMode.CustomText ? 'bg-white/15 text-white' : 'text-slate-300'
           }`}
         >
-          <Plus className="w-5 h-5" />
+          <FilePlus2 className="w-5 h-5" />
+        </button>
+        <button
+          type="button"
+          onClick={() => onNavigateSection('nguyen-tac')}
+          aria-label="Quy tắc 10 ngón"
+          className={`p-2.5 rounded-xl ${
+            activeSection === 'nguyen-tac' ? 'bg-white/15 text-white' : 'text-slate-300'
+          }`}
+        >
+          <Hand className="w-5 h-5" />
         </button>
         <button
           type="button"
@@ -347,9 +370,9 @@ export const SidebarRail: React.FC<SidebarRailProps> = ({
             activeSection === 'thong-ke' ? 'bg-white/15 text-white' : 'text-slate-300'
           }`}
         >
-          <Heart className="w-5 h-5" />
+          <BarChart3 className="w-5 h-5" />
           {totalSessions > 0 && (
-            <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-rose-500" />
+            <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-sky-400" />
           )}
         </button>
       </nav>
@@ -438,8 +461,8 @@ const RailButton: React.FC<RailButtonProps> = ({ label, isActive, onClick, child
       aria-label={label}
       className={`group relative w-12 h-12 rounded-xl flex items-center justify-center transition-colors cursor-pointer ${
         isActive
-          ? 'bg-white/14 text-white'
-          : 'text-white/85 hover:bg-white/10 hover:text-white'
+          ? 'bg-sky-600 text-white shadow-sm'
+          : 'text-slate-300 hover:bg-white/10 hover:text-white'
       }`}
     >
       {children}
