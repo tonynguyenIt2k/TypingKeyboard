@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { Lesson, PracticeMode } from '../types';
 import { LESSONS } from '../data/lessonsData';
+import { BrandLogo } from './BrandLogo';
 
 export type ActiveNavSection = 'san-tap' | 'lo-trinh' | 'nguyen-tac' | 'thong-ke';
 
@@ -113,14 +114,14 @@ export const SidebarRail: React.FC<SidebarRailProps> = ({
         aria-label="Thanh điều hướng chính"
         className="hidden md:flex fixed inset-y-0 left-0 z-40 w-[72px] bg-[#0B0D10] text-white flex-col items-center justify-between py-6 border-r border-white/10 select-none"
       >
-        {/* Top Brand Mark: Mười Ngón Monogram */}
+        {/* Top Brand Mark: Custom Mười Ngón Logo */}
         <button
           type="button"
           onClick={() => onNavigateSection('san-tap')}
           title="Mười Ngón — Về Sân tập"
-          className="group relative w-11 h-11 rounded-xl bg-white/10 border border-white/15 flex items-center justify-center text-white hover:bg-sky-600 hover:border-sky-500 transition-colors cursor-pointer"
+          className="group relative rounded-xl flex items-center justify-center focus:outline-none cursor-pointer"
         >
-          <span className="font-mono text-sm font-bold tracking-tight">10N</span>
+          <BrandLogo size="md" />
           <RailTooltip label="Mười Ngón — Trang chính" />
         </button>
 

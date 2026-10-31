@@ -15,6 +15,7 @@ import { CurriculumSection } from './components/CurriculumSection';
 import { FingerGuideSection } from './components/FingerGuideSection';
 import { StatsSection } from './components/StatsSection';
 import { SidebarRail, ActiveNavSection } from './components/SidebarRail';
+import { BrandLogo } from './components/BrandLogo';
 import { soundEngine } from './utils/sound';
 
 const STORAGE_KEY = 'muoingon_typing_history_v1';
@@ -624,9 +625,12 @@ export default function App() {
           <div className="max-w-7xl mx-auto px-6 space-y-6">
             {/* Compact Workspace Header & Mode Segmented Controls */}
             <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-5">
-              <div className="space-y-1.5 max-w-2xl">
+              <div className="space-y-2 max-w-2xl">
+                <div className="md:hidden pb-1">
+                  <BrandLogo size="sm" showWordmark />
+                </div>
                 <div className="flex items-center gap-2 text-xs text-slate-500">
-                  <span>Luyện gõ mười ngón tay</span>
+                  <span className="font-semibold text-slate-700">Mười Ngón</span>
                   <span aria-hidden="true">·</span>
                   <span>Hỗ trợ Tiếng Việt Telex / VNI & Tiếng Anh</span>
                 </div>
@@ -998,9 +1002,12 @@ export default function App() {
       {/* Clean Quiet Footer */}
       <footer className="border-t border-slate-200 bg-white py-8">
         <div className="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
-          <p>
-            © 2026 Mười Ngón — Nền tảng luyện gõ bàn phím bằng 10 ngón tay chuẩn công thái học.
-          </p>
+          <div className="flex items-center gap-3">
+            <BrandLogo size="sm" />
+            <p>
+              © 2026 <strong className="font-semibold text-slate-800">Mười Ngón</strong> — Nền tảng luyện gõ bàn phím bằng 10 ngón tay chuẩn công thái học.
+            </p>
+          </div>
           <div className="flex items-center gap-5">
             <a href="#san-tap" className="hover:text-slate-900 transition-colors">
               Sân tập
