@@ -9,6 +9,7 @@ import {
   CheckCircle2,
   AlertTriangle,
   FastForward,
+  Activity,
 } from 'lucide-react';
 
 interface TypingCanvasProps {
@@ -24,6 +25,8 @@ interface TypingCanvasProps {
   errorCount: number;
   soundEnabled: boolean;
   errorSoundEnabled: boolean;
+  metronomeEnabled: boolean;
+  metronomeWpm: number;
   showFingerZones: boolean;
   showHandSvg: boolean;
   onInputChange: (val: string) => void;
@@ -32,6 +35,7 @@ interface TypingCanvasProps {
   onToggleGhostMode: () => void;
   onToggleSound: () => void;
   onToggleErrorSound: () => void;
+  onToggleMetronome: () => void;
   onToggleZones: () => void;
   onToggleHands: () => void;
   inputRef: React.RefObject<HTMLTextAreaElement | null>;
@@ -50,6 +54,8 @@ export const TypingCanvas: React.FC<TypingCanvasProps> = ({
   errorCount,
   soundEnabled,
   errorSoundEnabled,
+  metronomeEnabled,
+  metronomeWpm,
   showFingerZones,
   showHandSvg,
   onInputChange,
@@ -58,6 +64,7 @@ export const TypingCanvas: React.FC<TypingCanvasProps> = ({
   onToggleGhostMode,
   onToggleSound,
   onToggleErrorSound,
+  onToggleMetronome,
   onToggleZones,
   onToggleHands,
   inputRef,
@@ -170,6 +177,20 @@ export const TypingCanvas: React.FC<TypingCanvasProps> = ({
 
         {/* Interactive Toolbar Controls */}
         <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={onToggleMetronome}
+            className={`inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg border transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
+              metronomeEnabled
+                ? 'bg-amber-50 text-amber-900 border-amber-300'
+                : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+            }`}
+            title="Bật/tắt nhịp đếm Metronome đều đặn (Chỉnh tốc độ WPM trong nút Cài đặt góc dưới Sidebar)"
+          >
+            <Activity className="w-3.5 h-3.5" />
+            <span>Metronome ({metronomeWpm} WPM)</span>
+          </button>
+
           <button
             type="button"
             onClick={onToggleGhostMode}

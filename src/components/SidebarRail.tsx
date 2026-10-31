@@ -15,6 +15,7 @@ import {
   RotateCcw,
   FastForward,
   Sparkles,
+  Activity,
   X,
 } from 'lucide-react';
 import { Lesson, PracticeMode } from '../types';
@@ -28,6 +29,8 @@ interface SidebarRailProps {
   ghostMode: boolean;
   soundEnabled: boolean;
   errorSoundEnabled: boolean;
+  metronomeEnabled: boolean;
+  metronomeWpm: number;
   showFingerZones: boolean;
   showHandSvg: boolean;
   bestWpm: number;
@@ -41,6 +44,8 @@ interface SidebarRailProps {
   onToggleGhostMode: () => void;
   onToggleSound: () => void;
   onToggleErrorSound: () => void;
+  onToggleMetronome: () => void;
+  onChangeMetronomeWpm: (wpm: number) => void;
   onToggleZones: () => void;
   onToggleHands: () => void;
 }
@@ -51,6 +56,8 @@ export const SidebarRail: React.FC<SidebarRailProps> = ({
   ghostMode,
   soundEnabled,
   errorSoundEnabled,
+  metronomeEnabled,
+  metronomeWpm,
   showFingerZones,
   showHandSvg,
   bestWpm,
@@ -64,6 +71,8 @@ export const SidebarRail: React.FC<SidebarRailProps> = ({
   onToggleGhostMode,
   onToggleSound,
   onToggleErrorSound,
+  onToggleMetronome,
+  onChangeMetronomeWpm,
   onToggleZones,
   onToggleHands,
 }) => {
@@ -235,12 +244,76 @@ export const SidebarRail: React.FC<SidebarRailProps> = ({
             <SlidersHorizontal className="w-5 h-5 stroke-[1.8]" />
           </RailButton>
 
-          {/* Popover Menu anchored next to Settings button */}
+              {/* Popover Menu anchored next to Settings button */}
           {openSettingsMenu && (
-            <div className="absolute bottom-2 left-16 w-64 rounded-xl bg-[#15181E] text-white border border-white/15 shadow-xl p-2 space-y-1 z-50">
+            <div className="absolute bottom-2 left-16 w-72 rounded-xl bg-[#15181E] text-white border border-white/15 shadow-xl p-2.5 space-y-1 z-50">
               <div className="px-3 py-2 border-b border-white/10">
                 <p className="text-xs font-semibold text-white">Tùy chỉnh sân tập</p>
-                <p className="text-[11px] text-slate-400">Chế độ gõ, âm thanh & hướng dẫn</p>
+                <p className="text-[11px] text-slate-400">Nhịp Metronome, âm thanh & hướng dẫn</p>
+              </div>
+
+              {/* Metronome Toggle + Target WPM Slider */}
+              <div className="rounded-lg bg-white/[0.04] border border-white/10 p-2.5 space-y-2.5 my-1">
+                <button
+                  type="button"
+                  onClick={onToggleMetronome}
+                  className="w-full flex items-center justify-between text-xs cursor-pointer"
+                >
+                  <span className="flex items-center gap-2 font-medium text-white">
+                    <Activity
+                      className={`w-4 h-4 ${
+                        metronomeEnabled ? 'text-amber-400' : 'text-slate-400'
+                      }`}
+                    />
+                    <span>Nhịp Metronome</span>
+                  </span>
+                  <span
+                    className={`font-mono text-[11px] px-2 py-0.5 rounded ${
+                      metronomeEnabled
+                        ? 'bg-amber-500/20 text-amber-300 font-semibold'
+                        : 'text-slate-400'
+                    }`}
+                  >
+                    {metronomeEnabled ? 'Đang bật' : 'Tắt'}
+                  </span>
+                </button>
+
+                <div className="space-y-1.5 pt-1 border-t border-white/10">
+                  <div className="flex items-center justify-between text-[11px] font-mono tabular-nums">
+                    <label htmlFor="metronome-wpm-slider" className="text-slate-300">
+                      Tốc độ nhịp: <strong className="text-white">{metronomeWpm} WPM</strong>
+                    </label>
+                    <span className="text-slate-400">{metronomeWpm * 5} nhịp/phút</span>
+                  </div>
+
+                  <input
+                    id="metronome-wpm-slider"
+                    type="range"
+                    min={15}
+                    max={90}
+                    step={5}
+                    value={metronomeWpm}
+                    onChange={(e) => onChangeMetronomeWpm(Number(e.target.value))}
+                    className="w-full accent-amber-400 cursor-pointer h-1.5 bg-white/15 rounded-lg"
+                  />
+
+                  <div className="flex items-center justify-between gap-1 pt-0.5">
+                    {[25, 40, 60, 80].map((preset) => (
+                      <button
+                        key={preset}
+                        type="button"
+                        onClick={() => onChangeMetronomeWpm(preset)}
+                        className={`flex-1 py-1 rounded text-[10px] font-mono transition-colors cursor-pointer ${
+                          metronomeWpm === preset
+                            ? 'bg-amber-400 text-slate-950 font-bold'
+                            : 'bg-white/10 text-slate-300 hover:bg-white/15'
+                        }`}
+                      >
+                        {preset} WPM
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
 
               <button

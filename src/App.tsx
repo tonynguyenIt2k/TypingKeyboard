@@ -33,7 +33,14 @@ export default function App() {
   const [timedLang, setTimedLang] = useState<'vi' | 'viNoTone' | 'en'>('vi');
   const [timedPassageIdx, setTimedPassageIdx] = useState<number>(0);
   const [zenPassageIdx, setZenPassageIdx] = useState<number>(0);
-  const [zenFullScreen, setZenFullScreen] = useState<boolean>(false);
+  const [zenUseCustom, setZenUseCustom] = useState<boolean>(false);
+  const [zenCustomText, setZenCustomText] = useState<string>(() => {
+    try {
+      return localStorage.getItem('muoingon_zen_custom_v1') || '';
+    } catch {
+      return '';
+    }
+  });
 
   // Custom text state
   const [customDraft, setCustomDraft] = useState<string>(DEFAULT_CUSTOM_TEXT);
@@ -44,6 +51,8 @@ export default function App() {
   const [ghostMode, setGhostMode] = useState<boolean>(false);
   const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
   const [errorSoundEnabled, setErrorSoundEnabled] = useState<boolean>(true);
+  const [metronomeEnabled, setMetronomeEnabled] = useState<boolean>(false);
+  const [metronomeWpm, setMetronomeWpm] = useState<number>(40);
   const [showFingerZones, setShowFingerZones] = useState<boolean>(true);
   const [showHandSvg, setShowHandSvg] = useState<boolean>(true);
   const [activeSection, setActiveSection] = useState<ActiveNavSection>('san-tap');
@@ -98,10 +107,23 @@ export default function App() {
       return list[timedPassageIdx % list.length];
     }
     if (mode === PracticeMode.ZenFocus) {
+      if (zenUseCustom && zenCustomText.trim().length >= 5) {
+        return zenCustomText.trim();
+      }
       return activeZenPassage.text;
     }
     return appliedCustomText.trim() || DEFAULT_CUSTOM_TEXT;
-  }, [mode, activeLesson, exerciseIdx, timedLang, timedPassageIdx, activeZenPassage, appliedCustomText]);
+  }, [
+    mode,
+    activeLesson,
+    exerciseIdx,
+    timedLang,
+    timedPassageIdx,
+    zenUseCustom,
+    zenCustomText,
+    activeZenPassage,
+    appliedCustomText,
+  ]);
 
   const sessionTitle = useMemo(() => {
     if (mode === PracticeMode.Lesson) {
@@ -117,10 +139,12 @@ export default function App() {
       return `Kiểm tra tốc độ ${timedDuration} giây — ${langLabel}`;
     }
     if (mode === PracticeMode.ZenFocus) {
-      return `Zen Lyric — ${activeZenPassage.label}`;
+      return zenUseCustom && zenCustomText.trim()
+        ? 'Zen Lyric — Nội dung tự chọn'
+        : `Zen Lyric — ${activeZenPassage.label}`;
     }
     return 'Văn bản tự chọn cá nhân';
-  }, [mode, activeLesson, exerciseIdx, timedDuration, timedLang, activeZenPassage]);
+  }, [mode, activeLesson, exerciseIdx, timedDuration, timedLang, zenUseCustom, zenCustomText, activeZenPassage]);
 
   const saveSessionRecord = useCallback((record: SessionRecord) => {
     setLastRecord(record);
@@ -218,10 +242,27 @@ export default function App() {
     return () => window.clearInterval(interval);
   }, [startTimeMs, isFinished, mode, timedDuration, finishSession, errorCount, missedChars]);
 
+  // Synchronize Web Audio Metronome rhythm with metronomeEnabled, metronomeWpm, and session state
+  useEffect(() => {
+    const bpm = metronomeWpm * 5; // 1 standard word = 5 keystrokes
+    soundEngine.setMetronomeBpm(bpm);
+
+    if (metronomeEnabled && !isFinished && !isEditingCustom) {
+      soundEngine.startMetronome(bpm);
+    } else {
+      soundEngine.stopMetronome();
+    }
+
+    return () => {
+      soundEngine.stopMetronome();
+    };
+  }, [metronomeEnabled, metronomeWpm, isFinished, isEditingCustom]);
+
   // Global physical keyboard listener for visual key highlight & Esc reset
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
+        if (isEditingCustom) return;
         e.preventDefault();
         resetSession(true);
         return;
@@ -448,6 +489,7 @@ export default function App() {
     } else if (mode === PracticeMode.TimedTest) {
       setTimedPassageIdx((i) => i + 1);
     } else if (mode === PracticeMode.ZenFocus) {
+      setZenUseCustom(false);
       setZenPassageIdx((i) => i + 1);
     }
     resetSession(true);
@@ -455,9 +497,6 @@ export default function App() {
 
   const handleSwitchMode = (nextMode: PracticeMode) => {
     setMode(nextMode);
-    if (nextMode !== PracticeMode.ZenFocus) {
-      setZenFullScreen(false);
-    }
     setIsEditingCustom(nextMode === PracticeMode.CustomText && !appliedCustomText);
     resetSession(nextMode !== PracticeMode.CustomText);
   };
@@ -524,6 +563,8 @@ export default function App() {
         ghostMode={ghostMode}
         soundEnabled={soundEnabled}
         errorSoundEnabled={errorSoundEnabled}
+        metronomeEnabled={metronomeEnabled}
+        metronomeWpm={metronomeWpm}
         showFingerZones={showFingerZones}
         showHandSvg={showHandSvg}
         bestWpm={bestWpm}
@@ -562,6 +603,16 @@ export default function App() {
             if (next) soundEngine.playErrorSound();
             return next;
           });
+        }}
+        onToggleMetronome={() => {
+          setMetronomeEnabled((prev) => !prev);
+          requestAnimationFrame(() => inputRef.current?.focus());
+        }}
+        onChangeMetronomeWpm={(nextWpm) => {
+          setMetronomeWpm(nextWpm);
+          if (!metronomeEnabled) {
+            soundEngine.playMetronomePreviewTick();
+          }
         }}
         onToggleZones={() => setShowFingerZones((z) => !z)}
         onToggleHands={() => setShowHandSvg((h) => !h)}
@@ -781,22 +832,14 @@ export default function App() {
               </form>
             )}
 
-            {/* Focal Anchor: Typing Stage OR Zen Karaoke Stage OR Session Summary */}
-            {isFinished && lastRecord ? (
-              <SessionSummary
-                record={lastRecord}
-                targetWpm={mode === PracticeMode.Lesson ? activeLesson.targetWpm : 40}
-                targetAccuracy={mode === PracticeMode.Lesson ? activeLesson.targetAccuracy : 94}
-                hasNextExercise={mode !== PracticeMode.CustomText}
-                onRetry={() => resetSession(true)}
-                onNext={handleNextExercise}
-              />
-            ) : mode === PracticeMode.ZenFocus ? (
+            {/* Focal Anchor: Full-Screen Zen Karaoke Stage OR Standard Typing Stage / Session Summary */}
+            {mode === PracticeMode.ZenFocus ? (
               <ZenKaraokeStage
                 targetText={targetText}
                 typedText={typedText}
                 isFocused={isFocused}
                 isFinished={isFinished}
+                lastRecord={lastRecord}
                 wpm={liveStats.wpm}
                 accuracy={liveStats.accuracy}
                 elapsedSec={elapsedSec}
@@ -805,17 +848,32 @@ export default function App() {
                 keyFeedback={keyFeedback}
                 soundEnabled={soundEnabled}
                 errorSoundEnabled={errorSoundEnabled}
-                isFullScreen={zenFullScreen}
-                activePassageId={activeZenPassage.id}
+                metronomeEnabled={metronomeEnabled}
+                metronomeWpm={metronomeWpm}
+                activePassageId={zenUseCustom ? 'custom' : activeZenPassage.id}
+                customZenText={zenCustomText}
                 onSelectPassage={(passage) => {
                   const foundIdx = ZEN_LYRIC_PASSAGES.findIndex((p) => p.id === passage.id);
                   if (foundIdx >= 0) setZenPassageIdx(foundIdx);
+                  setZenUseCustom(false);
+                  resetSession(true);
+                }}
+                onApplyCustomZenText={(newText) => {
+                  setZenCustomText(newText);
+                  setZenUseCustom(true);
+                  try {
+                    localStorage.setItem('muoingon_zen_custom_v1', newText);
+                  } catch {
+                    // ignore storage errors
+                  }
                   resetSession(true);
                 }}
                 onNextPassage={() => {
+                  setZenUseCustom(false);
                   setZenPassageIdx((i) => i + 1);
                   resetSession(true);
                 }}
+                onExitZen={() => handleSwitchMode(PracticeMode.Lesson)}
                 onInputChange={handleInputChange}
                 onFocusChange={setIsFocused}
                 onReset={() => resetSession(true)}
@@ -833,11 +891,24 @@ export default function App() {
                     return next;
                   });
                 }}
-                onToggleFullScreen={() => {
-                  setZenFullScreen((f) => !f);
+                onToggleMetronome={() => {
+                  setMetronomeEnabled((prev) => !prev);
                   requestAnimationFrame(() => inputRef.current?.focus());
                 }}
+                onChangeMetronomeWpm={(nextWpm) => {
+                  setMetronomeWpm(nextWpm);
+                }}
+                onEditingCustomChange={setIsEditingCustom}
                 inputRef={inputRef}
+              />
+            ) : isFinished && lastRecord ? (
+              <SessionSummary
+                record={lastRecord}
+                targetWpm={mode === PracticeMode.Lesson ? activeLesson.targetWpm : 40}
+                targetAccuracy={mode === PracticeMode.Lesson ? activeLesson.targetAccuracy : 94}
+                hasNextExercise={mode !== PracticeMode.CustomText}
+                onRetry={() => resetSession(true)}
+                onNext={handleNextExercise}
               />
             ) : (
               <div className="space-y-6">
@@ -854,6 +925,8 @@ export default function App() {
                   errorCount={errorCount}
                   soundEnabled={soundEnabled}
                   errorSoundEnabled={errorSoundEnabled}
+                  metronomeEnabled={metronomeEnabled}
+                  metronomeWpm={metronomeWpm}
                   showFingerZones={showFingerZones}
                   showHandSvg={showHandSvg}
                   onInputChange={handleInputChange}
@@ -876,6 +949,10 @@ export default function App() {
                       if (next) soundEngine.playErrorSound();
                       return next;
                     });
+                  }}
+                  onToggleMetronome={() => {
+                    setMetronomeEnabled((prev) => !prev);
+                    requestAnimationFrame(() => inputRef.current?.focus());
                   }}
                   onToggleZones={() => setShowFingerZones((z) => !z)}
                   onToggleHands={() => setShowHandSvg((h) => !h)}
