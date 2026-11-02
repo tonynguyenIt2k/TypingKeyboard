@@ -14,6 +14,7 @@ export enum PracticeMode {
   Lesson = 'lesson',
   TimedTest = 'timed_test',
   ZenFocus = 'zen_focus',
+  SubtitleLine = 'subtitle_line',
   CustomText = 'custom_text',
 }
 

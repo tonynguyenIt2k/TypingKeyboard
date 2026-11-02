@@ -15,6 +15,7 @@ import {
   RotateCcw,
   FastForward,
   Sparkles,
+  Subtitles,
   Activity,
   X,
 } from 'lucide-react';
@@ -39,6 +40,7 @@ interface SidebarRailProps {
   onNavigateSection: (section: ActiveNavSection) => void;
   onStartTimedTest: () => void;
   onStartZenMode: () => void;
+  onStartSubtitleMode: () => void;
   onOpenCustomText: () => void;
   onSelectLesson: (lesson: Lesson) => void;
   onResetSession: () => void;
@@ -66,6 +68,7 @@ export const SidebarRail: React.FC<SidebarRailProps> = ({
   onNavigateSection,
   onStartTimedTest,
   onStartZenMode,
+  onStartSubtitleMode,
   onOpenCustomText,
   onSelectLesson,
   onResetSession,
@@ -154,7 +157,16 @@ export const SidebarRail: React.FC<SidebarRailProps> = ({
             <Timer className="w-6 h-6 stroke-[1.8] transition-transform group-hover:scale-105" />
           </RailButton>
 
-          {/* 4. Chế độ Zen Lyric (Giao diện tối Karaoke) -> Sparkles */}
+          {/* 4. Chế độ Phụ đề Song ngữ (Gõ từng dòng kiểu YouGlish / Lyrics) -> Subtitles */}
+          <RailButton
+            label="Gõ Phụ đề Song ngữ từng câu"
+            isActive={mode === PracticeMode.SubtitleLine}
+            onClick={onStartSubtitleMode}
+          >
+            <Subtitles className="w-6 h-6 stroke-[1.8] transition-transform group-hover:scale-105" />
+          </RailButton>
+
+          {/* 5. Chế độ Zen Lyric (Giao diện tối Karaoke) -> Sparkles */}
           <RailButton
             label="Chế độ Zen Lyric (Gõ chill nền tối)"
             isActive={mode === PracticeMode.ZenFocus && activeSection === 'san-tap'}
@@ -427,6 +439,16 @@ export const SidebarRail: React.FC<SidebarRailProps> = ({
           }`}
         >
           <Timer className="w-5 h-5" />
+        </button>
+        <button
+          type="button"
+          onClick={onStartSubtitleMode}
+          aria-label="Phụ đề Song ngữ"
+          className={`p-2.5 rounded-xl ${
+            mode === PracticeMode.SubtitleLine ? 'bg-white/15 text-white' : 'text-slate-300'
+          }`}
+        >
+          <Subtitles className="w-5 h-5" />
         </button>
         <button
           type="button"

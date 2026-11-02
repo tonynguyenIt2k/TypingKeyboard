@@ -10,6 +10,7 @@ import { KeyFeedbackEvent, Lesson, PracticeMode, SessionRecord } from './types';
 import { TypingCanvas } from './components/TypingCanvas';
 import { VirtualKeyboard } from './components/VirtualKeyboard';
 import { ZenKaraokeStage } from './components/ZenKaraokeStage';
+import { BilingualSubtitleStage } from './components/BilingualSubtitleStage';
 import { SessionSummary } from './components/SessionSummary';
 import { CurriculumSection } from './components/CurriculumSection';
 import { FingerGuideSection } from './components/FingerGuideSection';
@@ -262,6 +263,10 @@ export default function App() {
   // Global physical keyboard listener for visual key highlight & Esc reset
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (mode === PracticeMode.SubtitleLine) {
+        return;
+      }
+
       if (e.key === 'Escape') {
         if (isEditingCustom) return;
         e.preventDefault();
@@ -310,7 +315,7 @@ export default function App() {
       window.removeEventListener('keyup', handleKeyUp);
       window.removeEventListener('blur', handleBlur);
     };
-  }, [isEditingCustom, isFinished, resetSession]);
+  }, [mode, isEditingCustom, isFinished, resetSession]);
 
   // Focus input on initial mount
   useEffect(() => {
@@ -579,6 +584,10 @@ export default function App() {
           handleSwitchMode(PracticeMode.ZenFocus);
           scrollToWorkspace();
         }}
+        onStartSubtitleMode={() => {
+          handleSwitchMode(PracticeMode.SubtitleLine);
+          scrollToWorkspace();
+        }}
         onOpenCustomText={() => {
           setMode(PracticeMode.CustomText);
           setIsEditingCustom(true);
@@ -663,6 +672,17 @@ export default function App() {
                     }`}
                   >
                     Kiểm tra tốc độ
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleSwitchMode(PracticeMode.SubtitleLine)}
+                    className={`px-3.5 py-1.5 text-xs font-semibold rounded-md transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
+                      mode === PracticeMode.SubtitleLine
+                        ? 'bg-teal-600 text-white shadow-xs'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    Phụ đề Song ngữ
                   </button>
                   <button
                     type="button"
@@ -836,8 +856,16 @@ export default function App() {
               </form>
             )}
 
-            {/* Focal Anchor: Full-Screen Zen Karaoke Stage OR Standard Typing Stage / Session Summary */}
-            {mode === PracticeMode.ZenFocus ? (
+            {/* Focal Anchor: Subtitle Stage OR Full-Screen Zen Karaoke Stage OR Standard Typing Stage */}
+            {mode === PracticeMode.SubtitleLine ? (
+              <BilingualSubtitleStage
+                soundEnabled={soundEnabled}
+                errorSoundEnabled={errorSoundEnabled}
+                onExit={() => handleSwitchMode(PracticeMode.Lesson)}
+                onSaveRecord={saveSessionRecord}
+                onEditingCustomChange={setIsEditingCustom}
+              />
+            ) : mode === PracticeMode.ZenFocus ? (
               <ZenKaraokeStage
                 targetText={targetText}
                 typedText={typedText}
