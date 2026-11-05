@@ -11,6 +11,7 @@ import { TypingCanvas } from './components/TypingCanvas';
 import { VirtualKeyboard } from './components/VirtualKeyboard';
 import { ZenKaraokeStage } from './components/ZenKaraokeStage';
 import { BilingualSubtitleStage } from './components/BilingualSubtitleStage';
+import { MonkeyTypeStage } from './components/MonkeyTypeStage';
 import { SessionSummary } from './components/SessionSummary';
 import { CurriculumSection } from './components/CurriculumSection';
 import { FingerGuideSection } from './components/FingerGuideSection';
@@ -140,6 +141,9 @@ export default function App() {
             : 'Tiếng Anh';
       return `Kiểm tra tốc độ ${timedDuration} giây — ${langLabel}`;
     }
+    if (mode === PracticeMode.MonkeyType) {
+      return 'Monkey Type — Luyện gõ chuẩn quốc tế';
+    }
     if (mode === PracticeMode.ZenFocus) {
       return zenUseCustom && zenCustomText.trim()
         ? 'Zen Lyric — Nội dung tự chọn'
@@ -263,7 +267,7 @@ export default function App() {
   // Global physical keyboard listener for visual key highlight & Esc reset
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (mode === PracticeMode.SubtitleLine) {
+      if (mode === PracticeMode.SubtitleLine || mode === PracticeMode.MonkeyType) {
         return;
       }
 
@@ -576,6 +580,10 @@ export default function App() {
         bestWpm={bestWpm}
         totalSessions={history.length}
         onNavigateSection={handleNavigateSection}
+        onStartMonkeyType={() => {
+          handleSwitchMode(PracticeMode.MonkeyType);
+          scrollToWorkspace();
+        }}
         onStartTimedTest={() => {
           handleSwitchMode(PracticeMode.TimedTest);
           scrollToWorkspace();
@@ -661,6 +669,18 @@ export default function App() {
                     }`}
                   >
                     Bài học 10 ngón
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleSwitchMode(PracticeMode.MonkeyType)}
+                    className={`px-3.5 py-1.5 text-xs font-semibold rounded-md transition-colors whitespace-nowrap shrink-0 cursor-pointer flex items-center gap-1.5 ${
+                      mode === PracticeMode.MonkeyType
+                        ? 'bg-amber-500 text-slate-950 font-bold shadow-xs'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    <span>Monkey Type</span>
+                    <span className="text-[10px] px-1 py-0.2 rounded bg-amber-200/80 text-amber-950 font-mono font-bold">HOT</span>
                   </button>
                   <button
                     type="button"
@@ -856,8 +876,13 @@ export default function App() {
               </form>
             )}
 
-            {/* Focal Anchor: Subtitle Stage OR Full-Screen Zen Karaoke Stage OR Standard Typing Stage */}
-            {mode === PracticeMode.SubtitleLine ? (
+            {/* Focal Anchor: MonkeyType Stage OR Subtitle Stage OR Full-Screen Zen Karaoke Stage OR Standard Typing Stage */}
+            {mode === PracticeMode.MonkeyType ? (
+              <MonkeyTypeStage
+                onExit={() => handleSwitchMode(PracticeMode.Lesson)}
+                onSaveRecord={saveSessionRecord}
+              />
+            ) : mode === PracticeMode.SubtitleLine ? (
               <BilingualSubtitleStage
                 soundEnabled={soundEnabled}
                 errorSoundEnabled={errorSoundEnabled}

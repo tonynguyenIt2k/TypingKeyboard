@@ -22,11 +22,146 @@ class TypingSoundEngine {
     return this.ctx;
   }
 
-  playKeyClick(isSpace = false) {
-    const ctx = this.getContext();
-    if (!ctx) return;
+  private soundPack: 'default' | 'clicky' | 'thocky' | 'creamy' | 'typewriter' = 'default';
+  private masterVolume = 0.8;
 
+  setSoundPack(pack: 'default' | 'clicky' | 'thocky' | 'creamy' | 'typewriter') {
+    this.soundPack = pack;
+  }
+
+  getSoundPack() {
+    return this.soundPack;
+  }
+
+  setVolume(vol: number) {
+    this.masterVolume = Math.max(0, Math.min(1, vol));
+  }
+
+  playKeyClick(isSpace = false, packOverride?: 'default' | 'clicky' | 'thocky' | 'creamy' | 'typewriter') {
+    const ctx = this.getContext();
+    if (!ctx || this.masterVolume <= 0) return;
+
+    const pack = packOverride || this.soundPack;
     const now = ctx.currentTime;
+
+    if (pack === 'clicky') {
+      // Cherry MX Blue style: crisp snappy dual-click transient
+      const osc = ctx.createOscillator();
+      const osc2 = ctx.createOscillator();
+      const filter = ctx.createBiquadFilter();
+      const gain = ctx.createGain();
+
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(isSpace ? 750 : 1200, now);
+      osc.frequency.exponentialRampToValueAtTime(isSpace ? 180 : 350, now + 0.024);
+
+      osc2.type = 'sawtooth';
+      osc2.frequency.setValueAtTime(isSpace ? 1100 : 1850, now);
+      osc2.frequency.exponentialRampToValueAtTime(320, now + 0.015);
+
+      filter.type = 'highpass';
+      filter.frequency.setValueAtTime(450, now);
+
+      gain.gain.setValueAtTime(0.001, now);
+      gain.gain.linearRampToValueAtTime(0.09 * this.masterVolume, now + 0.002);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.028);
+
+      osc.connect(filter);
+      osc2.connect(filter);
+      filter.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(now);
+      osc2.start(now);
+      osc.stop(now + 0.03);
+      osc2.stop(now + 0.03);
+      return;
+    }
+
+    if (pack === 'thocky') {
+      // Deep resonant lubricated switch (Gateron Ink / Alpaca)
+      const osc = ctx.createOscillator();
+      const filter = ctx.createBiquadFilter();
+      const gain = ctx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(isSpace ? 140 : 210, now);
+      osc.frequency.exponentialRampToValueAtTime(isSpace ? 52 : 72, now + 0.045);
+
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(420, now);
+      filter.Q.setValueAtTime(3.5, now);
+
+      gain.gain.setValueAtTime(0.001, now);
+      gain.gain.linearRampToValueAtTime(0.12 * this.masterVolume, now + 0.003);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(now);
+      osc.stop(now + 0.055);
+      return;
+    }
+
+    if (pack === 'creamy') {
+      // NovelKeys Cream: soft, silky mid-range damp clack
+      const osc = ctx.createOscillator();
+      const filter = ctx.createBiquadFilter();
+      const gain = ctx.createGain();
+
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(isSpace ? 280 : 420, now);
+      osc.frequency.exponentialRampToValueAtTime(isSpace ? 110 : 160, now + 0.035);
+
+      filter.type = 'bandpass';
+      filter.frequency.setValueAtTime(isSpace ? 480 : 680, now);
+      filter.Q.setValueAtTime(1.8, now);
+
+      gain.gain.setValueAtTime(0.001, now);
+      gain.gain.linearRampToValueAtTime(0.08 * this.masterVolume, now + 0.003);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.038);
+
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(now);
+      osc.stop(now + 0.04);
+      return;
+    }
+
+    if (pack === 'typewriter') {
+      // Vintage mechanical typewriter: metallic strike followed by slight spring ring
+      const osc = ctx.createOscillator();
+      const oscMetal = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(isSpace ? 320 : 680, now);
+      osc.frequency.exponentialRampToValueAtTime(isSpace ? 90 : 140, now + 0.04);
+
+      oscMetal.type = 'sine';
+      oscMetal.frequency.setValueAtTime(2400, now);
+      oscMetal.frequency.exponentialRampToValueAtTime(800, now + 0.03);
+
+      gain.gain.setValueAtTime(0.001, now);
+      gain.gain.linearRampToValueAtTime(0.085 * this.masterVolume, now + 0.002);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.045);
+
+      osc.connect(gain);
+      oscMetal.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(now);
+      oscMetal.start(now);
+      osc.stop(now + 0.048);
+      oscMetal.stop(now + 0.048);
+      return;
+    }
+
+    // Default mechanical tactile click
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
 
@@ -34,7 +169,7 @@ class TypingSoundEngine {
     osc.frequency.setValueAtTime(isSpace ? 190 : 310, now);
     osc.frequency.exponentialRampToValueAtTime(isSpace ? 75 : 115, now + 0.032);
 
-    gain.gain.setValueAtTime(0.06, now);
+    gain.gain.setValueAtTime(0.06 * this.masterVolume, now);
     gain.gain.exponentialRampToValueAtTime(0.001, now + 0.035);
 
     osc.connect(gain);

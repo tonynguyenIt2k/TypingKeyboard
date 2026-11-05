@@ -17,6 +17,7 @@ import {
   Sparkles,
   Subtitles,
   Activity,
+  Flame,
   X,
 } from 'lucide-react';
 import { Lesson, PracticeMode } from '../types';
@@ -38,6 +39,7 @@ interface SidebarRailProps {
   bestWpm: number;
   totalSessions: number;
   onNavigateSection: (section: ActiveNavSection) => void;
+  onStartMonkeyType: () => void;
   onStartTimedTest: () => void;
   onStartZenMode: () => void;
   onStartSubtitleMode: () => void;
@@ -66,6 +68,7 @@ export const SidebarRail: React.FC<SidebarRailProps> = ({
   bestWpm,
   totalSessions,
   onNavigateSection,
+  onStartMonkeyType,
   onStartTimedTest,
   onStartZenMode,
   onStartSubtitleMode,
@@ -148,7 +151,16 @@ export const SidebarRail: React.FC<SidebarRailProps> = ({
             <BookOpen className="w-6 h-6 stroke-[1.8] transition-transform group-hover:scale-105" />
           </RailButton>
 
-          {/* 3. Kiểm tra tốc độ đếm ngược -> Timer */}
+          {/* 3. Monkey Type — Luyện gõ chuẩn quốc tế -> Flame */}
+          <RailButton
+            label="Monkey Type — Luyện gõ chuẩn quốc tế"
+            isActive={mode === PracticeMode.MonkeyType}
+            onClick={onStartMonkeyType}
+          >
+            <Flame className="w-6 h-6 stroke-[1.8] text-amber-400 transition-transform group-hover:scale-110" />
+          </RailButton>
+
+          {/* 4. Kiểm tra tốc độ đếm ngược -> Timer */}
           <RailButton
             label="Kiểm tra tốc độ (30s / 60s / 120s)"
             isActive={mode === PracticeMode.TimedTest && activeSection === 'san-tap'}
@@ -429,6 +441,16 @@ export const SidebarRail: React.FC<SidebarRailProps> = ({
           className={`p-2.5 rounded-xl ${activeSection === 'lo-trinh' ? 'bg-white/15 text-white' : 'text-slate-300'}`}
         >
           <BookOpen className="w-5 h-5" />
+        </button>
+        <button
+          type="button"
+          onClick={onStartMonkeyType}
+          aria-label="Monkey Type"
+          className={`p-2.5 rounded-xl ${
+            mode === PracticeMode.MonkeyType ? 'bg-amber-500/20 text-amber-400' : 'text-slate-300'
+          }`}
+        >
+          <Flame className="w-5 h-5 text-amber-400" />
         </button>
         <button
           type="button"

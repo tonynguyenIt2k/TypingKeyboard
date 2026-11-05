@@ -12,10 +12,46 @@ export enum FingerId {
 
 export enum PracticeMode {
   Lesson = 'lesson',
+  MonkeyType = 'monkey_type',
   TimedTest = 'timed_test',
   ZenFocus = 'zen_focus',
   SubtitleLine = 'subtitle_line',
   CustomText = 'custom_text',
+}
+
+export type MonkeyThemeId =
+  | 'serika_dark'
+  | 'dracula'
+  | 'nord'
+  | 'carbon'
+  | 'matrix'
+  | 'chalk'
+  | 'sakura'
+  | 'cyberpunk';
+
+export type MonkeyCaretStyle = 'smooth' | 'line' | 'block' | 'underline' | 'outline' | 'off';
+
+export type MonkeySoundPack = 'off' | 'clicky' | 'thocky' | 'creamy' | 'typewriter';
+
+export type MonkeyModeType = 'time' | 'words' | 'quote' | 'zen' | 'custom';
+
+export type MonkeyLanguage =
+  | 'vi_200'
+  | 'vi_1k'
+  | 'vi_cadao'
+  | 'en_200'
+  | 'en_1k'
+  | 'code';
+
+export interface MonkeyThemeDef {
+  id: MonkeyThemeId;
+  name: string;
+  bgColor: string;
+  mainColor: string;
+  subColor: string;
+  textColor: string;
+  errorColor: string;
+  errorExtraColor: string;
 }
 
 export enum LessonCategory {
